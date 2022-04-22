@@ -1,5 +1,18 @@
 use ic_cdk_macros::*;
+use candid::CandidType;
+use serde::Deserialize;
 
+#[pre_upgrade]
+fn pre_upgrade() {
+    let state: &State = ic_cdk::storage::get();
+    ic_cdk::storage::stable_save((state,)).unwrap();
+}
+
+#[post_upgrade]
+fn post_upgrade() {
+    let (state,): (State,) = ic_cdk::storage::stable_restore().unwrap();
+    *ic_cdk::storage::get_mut() = state;
+}
 
 
 #[query]
@@ -21,7 +34,7 @@ fn reset() {
     std::mem::take(state);
 }
 
-#[derive(Default)]
+#[derive(CandidType, Deserialize, Default)]
 struct State {
-    count: u32,
+    count: u32
 }
